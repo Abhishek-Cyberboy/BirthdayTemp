@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happiest Birthday</title>
+<style>
+:root{ --accent:#ff3b3b; --gold:#ffd24d; }
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:"Poppins",system-ui,Segoe UI,Roboto,Arial;}
+body{
+  background: url('https://raw.githubusercontent.com/Abhishek-Cyberboy/BirthdayTemp/main/WhatsApp%20Image%202025-11-17%20at%2012.25.28.jpeg') center center / cover no-repeat fixed;
+  background-color:#0b0b0b;
+  overflow:hidden; position:relative;
+}
+
+/* overlay to improve contrast */
+.overlay{ position:fixed; inset:0; background:linear-gradient(rgba(0,0,0,0.26), rgba(0,0,0,0.26)); z-index:1; pointer-events:none; }
+
+/* Card */
+.card{
+  position:absolute; top:8%; left:50%; transform:translateX(-50%);
+  width:min(720px,92%); padding:28px; background: rgba(255,255,255,0.94);
+  border-radius:14px; box-shadow:0 18px 40px rgba(0,0,0,0.28); z-index:22; text-align:center;
+}
+.card h1{ margin:0 0 8px; color:var(--accent); font-size:2.4rem; letter-spacing:0.5px;}
+.card p{ margin:0; color:#333; }
+
+/* Balloons layer (always on) */
+#balloons{ position:fixed; inset:0; pointer-events:none; z-index:6; }
+.balloon{ position:absolute; width:42px; height:58px; border-radius:50% 50% 44% 44%; transform-origin:center bottom; box-shadow:0 8px 18px rgba(0,0,0,0.2); opacity:0.95; }
+.balloon::after{ content:""; position:absolute; left:50%; bottom:-34px; width:2px; height:34px; background:rgba(0,0,0,0.35); transform:translateX(-50%); }
+@keyframes floatUp { from{ transform: translateY(0);} to{ transform: translateY(-140vh);} }
+
+/* Cake container (center bottom) */
+.cake-wrap{ position:fixed; left:50%; transform:translateX(-50%); bottom:62px; width:420px; max-width:86vw; z-index:20; pointer-events:none; }
+
+/* Cake layers (glossy) */
+.cake-layer{
+  position:relative; margin:0 auto; border-radius:18px; overflow:visible;
+}
+.layer-top{
+  height:64px; width:100%;
+  background: linear-gradient(180deg,#fff0f6,#ffe6ef);
+  box-shadow: inset 0 -10px rgba(255,180,200,0.35);
+}
+.layer-mid{
+  height:86px; width:100%;
+  background: linear-gradient(180deg,#ffd2e6,#ff9ecb);
+  margin-top:8px;
+  box-shadow: inset 0 -14px rgba(255,120,160,0.25);
+}
+.layer-bottom{
+  height:110px; width:100%;
+  background: linear-gradient(180deg,#ff82b0,#ff5e94);
+  margin-top:10px; border-radius:0 0 18px 18px;
+  box-shadow: inset 0 -18px rgba(255,60,120,0.25);
+}
+
+/* Candle holder (positioning) */
+#candleHolder{ position:absolute; left:0; right:0; top: -36px; height:1px; pointer-events:none; }
+
+/* Candle style */
+.candle{
+  position:absolute; width:16px; height:56px; border-radius:6px; background:linear-gradient(#fff,#ffecec);
+  box-shadow:0 3px 8px rgba(0,0,0,0.18);
+  top:-10px;
+}
+.candle .flame{
+  position:absolute; left:50%; transform:translateX(-50%); top:-26px;
+  width:14px; height:22px; border-radius:50%;
+  background: radial-gradient(circle,#ffd84a 30%,#ff8a00 60%,#ff2e00 100%);
+  box-shadow:0 0 14px rgba(255,140,0,0.9);
+  animation:flicker .22s infinite alternate;
+}
+@keyframes flicker{ from{ transform:translateX(-50%) scale(1);} to{ transform:translateX(-50%) scale(1.18);} }
+
+/* smoke puffs */
+.smoke{
+  position:absolute; width:14px; height:14px; border-radius:50%;
+  background: radial-gradient(circle, rgba(200,200,200,0.9), rgba(200,200,200,0.35));
+  filter: blur(2px);
+  transform-origin:center center;
+  animation: smokeUp 1400ms ease-out forwards;
+  pointer-events:none;
+}
+@keyframes smokeUp{
+  0%{ transform: translateY(0) scale(0.9); opacity:0.85; }
+  100%{ transform: translateY(-70px) scale(1.8); opacity:0; }
+}
+
+/* Celebrate button */
+#celebrateBtn{
+  position:fixed; left:50%; transform:translateX(-50%); bottom:16px;
+  z-index:24; padding:12px 26px; background:var(--accent); color:#fff; border:0; border-radius:10px; cursor:pointer; font-weight:600;
+  box-shadow:0 10px 26px rgba(0,0,0,0.28);
+}
+#celebrateBtn[disabled]{ opacity:0.6; cursor:default; }
+
+/* FX layers */
+#fx-fireworks, #fx-glitter, #fx-rings { position:fixed; inset:0; pointer-events:none; z-index:35; }
+
+/* spark (firecracker particle) */
+.spark{ position:absolute; width:6px; height:6px; border-radius:50%; opacity:0; animation:sparkFly 700ms linear forwards; filter: drop-shadow(0 0 6px rgba(255,200,60,0.9)); }
+@keyframes sparkFly{ from{ opacity:1; transform:translate(0,0) scale(1);} to{ opacity:0; transform:translate(var(--x),var(--y)) scale(0.4);} }
+
+/* glitter */
+.glitter{ position:absolute; width:6px; height:6px; border-radius:50%; background:radial-gradient(circle,#fff,#ffd700); box-shadow:0 0 10px rgba(255,215,0,0.95); animation:glitterAnim 700ms ease-out forwards; }
+@keyframes glitterAnim{ from{ transform:scale(.3); opacity:1 } to{ transform:scale(1.6) translate(var(--x),var(--y)); opacity:0 } }
+
+/* ring */
+.ring{ position:absolute; width:10px; height:10px; border-radius:50%; border:3px solid rgba(255,210,60,0.95); transform:translate(-50%,-50%) scale(.2); animation:ringAnim 900ms ease-out forwards; }
+@keyframes ringAnim{ to{ transform:translate(-50%,-50%) scale(3); opacity:0 } }
+
+/* screen flash */
+#screenFlash{ position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:48; transition:opacity .18s ease-out; }
+
+/* subtle glitch on card */
+.card.glitch{ animation: cardGlitch 420ms linear; filter: hue-rotate(16deg) saturate(1.12); }
+@keyframes cardGlitch{ 0%{ transform:translateX(-50%) translateY(0)} 25%{ transform:translateX(-48%) translateY(-2px)} 50%{ transform:translateX(-52%) translateY(2px)} 100%{ transform:translateX(-50%) translateY(0)} }
+
+@media (max-width:520px){
+  .cake-wrap{ width:320px; bottom:46px;}
+  .card{ width:92%; top:5%;}
+}
+</style>
+</head>
+<body>
+  <div class="overlay"></div>
+
+  <div class="card" id="card">
+    <h1>Happy Birthday!</h1>
+    <p>Wishing you joy, love and endless happiness 🎉</p>
+  </div>
+
+  <!-- floating balloons always on -->
+  <div id="balloons"></div>
+
+  <!-- cake -->
+  <div class="cake-wrap" id="cakeWrap" aria-hidden="true">
+    <div class="cake-layer layer-top"></div>
+    <div class="cake-layer layer-mid"></div>
+    <div class="cake-layer layer-bottom"></div>
+    <div id="candleHolder"></div>
+  </div>
+
+  <button id="celebrateBtn" aria-label="Celebrate">Celebrate 🎉</button>
+
+  <!-- FX layers -->
+  <div id="fx-fireworks"></div>
+  <div id="fx-glitter"></div>
+  <div id="fx-rings"></div>
+  <div id="screenFlash"></div>
+
+<script>
+/* ---------- Config ---------- */
+const CANDLE_COUNT = 5;              // you asked: 5
+const CELEBRATION_DURATION = 5000;   // 5 seconds
+
+/* ---------- Utility ---------- */
+const rand = (a,b)=> Math.random()*(b-a)+a;
+
+/* ---------- Balloons (always running) ---------- */
+let _balloonInterval = null;
+function startBalloons(){
+  if(_balloonInterval) return;
+  _balloonInterval = setInterval(()=>{
+    const container = document.getElementById('balloons');
+    const el = document.createElement('div');
+    el.className = 'balloon';
+    const colors = ['#ff4e4e','#ff8a00','#ffcb00','#ff5ecc','#7acbff'];
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.left = Math.random() * 86 + 'vw';
+    el.style.bottom = '-80px';
+    el.style.animationDuration = (6 + Math.random()*6) + 's';
+    container.appendChild(el);
+    setTimeout(()=> el.remove(), 13000);
+  }, 700);
+}
+startBalloons();
+
+/* ---------- Dynamic candles generator ---------- */
+function generateCandles(count = CANDLE_COUNT){
+  const holder = document.getElementById('candleHolder');
+  holder.innerHTML = ''; // clear
+
+  // compute spacing inside cake width (cake-wrap width)
+  const wrap = document.getElementById('cakeWrap');
+  const cakeWidth = wrap.offsetWidth || 420;
+  const edgeMargin = Math.max(28, cakeWidth * 0.08); // keep from edges
+  const usable = cakeWidth - edgeMargin * 2;
+  const gap = (count === 1) ? 0 : usable / (count - 1);
+
+  for(let i=0;i<count;i++){
+    const c = document.createElement('div');
+    c.className = 'candle';
+    // left relative to cakeWrap
+    const left = Math.round(edgeMargin + (gap * i));
+    c.style.left = left + 'px';
+
+    const flame = document.createElement('div');
+    flame.className = 'flame';
+    c.appendChild(flame);
+
+    holder.appendChild(c);
+  }
+}
+// call once (ensure layout ready)
+window.addEventListener('load', ()=> generateCandles(CANDLE_COUNT));
+window.addEventListener('resize', ()=> { clearTimeout(window.__candTimer); window.__candTimer = setTimeout(()=> generateCandles(CANDLE_COUNT), 120); });
+
+/* ---------- Smoke for candles ---------- */
+function spawnSmokeAt(x, parent){
+  const s = document.createElement('div');
+  s.className = 'smoke';
+  s.style.left = (x - 7) + 'px'; // center smoke on candle (candle width ~16)
+  parent.appendChild(s);
+  setTimeout(()=> s.remove(), 1600);
+}
+function createSmokeForAllCandles(){
+  const holder = document.getElementById('candleHolder');
+  // each candle absolute left inside holder
+  document.querySelectorAll('#candleHolder .candle').forEach(c=>{
+    const left = c.offsetLeft + (c.offsetWidth/2);
+    spawnSmokeAt(left, holder);
+  });
+}
+
+/* ---------- Firecracker Burst (top-corner) ---------- */
+function spawnFirecrackerAt(px, py, count = 22){
+  const layer = document.getElementById('fx-fireworks');
+  for(let i=0;i<count;i++){
+    const s = document.createElement('div');
+    s.className = 'spark';
+    const angle = rand(0, Math.PI*2);
+    const dist  = 80 + Math.random()*140;
+    s.style.left = px + 'px';
+    s.style.top  = py + 'px';
+    s.style.setProperty('--x', Math.cos(angle)*dist + 'px');
+    s.style.setProperty('--y', Math.sin(angle)*dist + 'px');
+    const colors = ['#ff2e63','#ffd60a','#00bcd4','#ff8a00','#9b59b6','#ffffff'];
+    s.style.background = colors[Math.floor(Math.random()*colors.length)];
+    layer.appendChild(s);
+    setTimeout(()=> s.remove(), 900);
+  }
+}
+function fireTopCornerBurst(){
+  spawnFirecrackerAt(80, Math.max(24, window.innerHeight * 0.05));
+  spawnFirecrackerAt(window.innerWidth - 80, Math.max(24, window.innerHeight * 0.05));
+}
+
+/* ---------- Glitter burst (center-ish) ---------- */
+function spawnGlitter(count=36){
+  const layer = document.getElementById('fx-glitter');
+  const cx = window.innerWidth/2;
+  const cy = window.innerHeight*0.38;
+  for(let i=0;i<count;i++){
+    const g = document.createElement('div');
+    g.className = 'glitter';
+    const ox = (Math.random()*260 - 130);
+    const oy = (Math.random()*140 - 70);
+    g.style.left = (cx + ox) + 'px';
+    g.style.top  = (cy + oy) + 'px';
+    const angle = Math.random()*Math.PI*2;
+    const dist  = 30 + Math.random()*120;
+    g.style.setProperty('--x', Math.cos(angle)*dist + 'px');
+    g.style.setProperty('--y', Math.sin(angle)*dist + 'px');
+    layer.appendChild(g);
+    setTimeout(()=> g.remove(), 900);
+  }
+}
+
+/* ---------- Explosion ring (center) ---------- */
+function spawnRing(){
+  const layer = document.getElementById('fx-rings');
+  const cx = window.innerWidth/2;
+  const cy = window.innerHeight*0.38;
+  const ring = document.createElement('div');
+  ring.className = 'ring';
+  ring.style.left = cx + 'px';
+  ring.style.top  = cy + 'px';
+  ring.style.width = '120px';
+  ring.style.height = '120px';
+  layer.appendChild(ring);
+  setTimeout(()=> ring.remove(), 900);
+}
+
+/* ---------- Screen flash ---------- */
+function flashScreen(){
+  const el = document.getElementById('screenFlash');
+  el.style.opacity = 0.88;
+  setTimeout(()=> el.style.opacity = 0, 160);
+}
+
+/* ---------- Card glitch ---------- */
+function glitchCard(){
+  const card = document.getElementById('card');
+  card.classList.add('glitch');
+  setTimeout(()=> card.classList.remove('glitch'), 420);
+}
+
+/* ---------- Celebration controller (5s) ---------- */
+let _celebrateInterval = null;
+function startCelebrate(){
+  const btn = document.getElementById('celebrateBtn');
+  if(btn.disabled) return;
+  btn.disabled = true;
+
+  // extinguish flames and spawn smoke shortly after
+  document.querySelectorAll('#candleHolder .flame').forEach(f=>{
+    f.style.animation = 'none';
+    f.style.opacity = 0;
+  });
+  setTimeout(()=> createSmokeForAllCandles(), 200);
+
+  // start bursts every 420ms
+  fireTopCornerBurst();
+  spawnGlitter(20);
+  spawnRing();
+  glitchCard();
+  flashScreen();
+
+  _celebrateInterval = setInterval(()=>{
+    fireTopCornerBurst();
+    spawnGlitter(12);
+    spawnRing();
+    glitchCard();
+    flashScreen();
+  }, 420);
+
+  // stop after duration
+  setTimeout(()=>{
+    clearInterval(_celebrateInterval);
+    _celebrateInterval = null;
+    // final flourish
+    fireTopCornerBurst();
+    spawnGlitter(28);
+    spawnRing();
+    flashScreen();
+    // re-enable button once last animations fade
+    setTimeout(()=> { btn.disabled = false; }, 900);
+  }, CELEBRATION_DURATION);
+}
+
+/* ---------- Wire up button ---------- */
+document.getElementById('celebrateBtn').addEventListener('click', startCelebrate);
+
+/* ---------- Accessibility: keyboard trigger ---------- */
+document.addEventListener('keydown', (e)=>{
+  if(e.code === 'Enter' || e.code === 'Space') {
+    const active = document.activeElement;
+    if(active && active.id === 'celebrateBtn') startCelebrate();
+  }
+});
+</script>
+</body>
+</html>
